@@ -1,0 +1,294 @@
+<?php
+require_once 'db.php';
+//header('Content-Type: text/html; charset=utf-8');
+if(!isset($_COOKIE["annotator"])){
+    header("location:index.php");
+}
+$prefix = "nctti_ro_";
+$MAXANNOT = "280";
+$GOAL=280;
+
+$tbl_mwes = $prefix."mwes";
+$tbl_respostas = $prefix."responses";
+$tbl_anotacao = $prefix."annotations";
+
+/******************************************************************************/
+
+function get_random_mwe_id($anno, $pdo){
+    global $MAXANNOT;
+    global $prefix;
+    global $tbl_mwes;
+    global $tbl_respostas;
+    # Select MWE IDs that : are not annotated by current annotator and do not have MAXANNOT annotations yet
+    $stmt = $pdo->prepare("SELECT nan.id FROM (SELECT m.id, COUNT(m.id) as cid FROM ($tbl_mwes as m LEFT JOIN $tbl_respostas AS r ON m.id = r.idMWE ) WHERE id NOT IN (SELECT idMWE FROM $tbl_respostas WHERE anotador = :anotador) GROUP BY m.id) AS nan WHERE cid <= :maxannot");
+    $stmt->execute(array(':anotador' => $anno, ':maxannot' => $MAXANNOT));
+    $results = $stmt->fetch(PDO::FETCH_NUM);
+    $lstIDs = array();
+    if($results){
+        foreach ($results as $ID) {
+          array_push($lstIDs, $ID);
+        }
+    }
+    if ($lstIDs) {
+       $tent = $lstIDs[array_rand($lstIDs,1)];
+       return $tent;
+    }
+    else{
+      echo ("<h1>Ați adnotat toate expresiile, mulțumesc! :-)</h1>");
+    }
+}
+
+/******************************************************************************/
+
+function store_previous_answer($ans1, $ans2, $ans3, $comments, $equivalents, $anno, $pdo){
+    $idMWE = $_POST['idMWE'];
+    $idSent= $_POST['idSent'];
+    global $prefix;
+    global $tbl_respostas;
+    global $tbl_anotacao;
+    $check = $pdo->prepare("SELECT * FROM $tbl_respostas WHERE idMWE = :idMWE AND anotador = :anno");
+    $check->execute(array(':idMWE' => $idMWE, ':anno' => $anno));
+    $test = $check->fetch(PDO::FETCH_NUM);
+    if ( ! $test){
+      $stmt = $pdo->prepare("INSERT INTO $tbl_respostas (idMWE, idSent, anotador, resp1, resp2, resp3, comments) VALUES (:idMWE, :idSent, :anotador, :ans1, :ans2, :ans3, :comments)");
+      $stmt->execute(array(':idMWE'  => $idMWE, ':idSent' => $idSent, ':anotador' => $anno, ':ans1' => $ans1, ':ans2' => $ans2, ':ans3'=> $ans3, ':comments' => $comments));
+      for($i=0; $i < count($equivalents); $i++){
+        $stmt = $pdo->prepare("INSERT INTO $tbl_anotacao (idmwe, idsent, idanno, word) VALUES (:idMWE, :idSent, :idAnno, :word)");
+        $stmt->execute(array(':idMWE' => $idMWE, ':idSent' => $idSent, ':idAnno' =>$anno, ':word' => $equivalents[$i]));
+      }
+    }
+}
+
+/******************************************************************************/
+
+//sleep(2); Test sending button disabled
+
+$anno = $_COOKIE["annotator"];
+// User skipped previous question, store this decision
+if(isset($_POST['btt_pular'])){
+    store_previous_answer(-1,-1,-1,"pulou",array(),$anno, $pdo);
+}
+// User submitted last question, store the answers
+if(isset($_POST['btt_next'])){
+    $equivalents = $_POST['values'];
+    $ans1 = $_POST['Qhead'];
+    $ans2 = $_POST['Qmodifier'];
+    $ans3 = $_POST['Qheadmodifier'];
+    $comments = $_POST['comments'];
+    store_previous_answer($ans1, $ans2, $ans3, $comments, $equivalents,$anno, $pdo);
+}
+// Generate next question
+$idMWE = get_random_mwe_id($anno, $pdo);
+if($idMWE) { // else no new question available, all annotated or problem
+    //Retrieve all information about the compound
+    $stmt = $pdo->prepare("SELECT * FROM $tbl_mwes WHERE id = :id");
+    $stmt->execute(array(':id'=> $idMWE));
+    $mweinfo = $stmt->fetch(PDO::FETCH_ASSOC);
+    // Retrieve information about user
+    $stmt2 = $pdo->prepare("SELECT count(*) FROM $tbl_respostas WHERE anotador = :anno");
+    $stmt2->execute(array(':anno' => $anno));
+    $result = $stmt2->fetch(PDO::FETCH_ASSOC);
+    $done = $result['count(*)'];
+    $percent = min(round((($done*100.0)/$GOAL)),100);
+
+    // Add regex - replace double spaces with single
+    echo preg_replace('/\s+/', ' ', 
+'<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="pt">
+  <head>
+      <meta http-equiv="content-type" content="text/html; charset=utf-8">
+      <title>Interpretarea compușilor nominali în limba română</title>
+      <meta name="generator" content="Bootply" />
+      <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+      <link href="css/bootstrap.min.css" rel="stylesheet">
+      <!--[if lt IE 9]>
+        <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
+      <![endif]-->
+      <link href="css/styles.css" rel="stylesheet">
+      <link href="css/mturk.css" rel="stylesheet">
+  </head>
+  <body>
+  <div class="idandprogress">
+    <p>Sunteți conectat ca <strong>: '.$anno.'</strong>, ați adnotat '.$done.' expresii, iar target-ul dumneavoastră este de '.$GOAL.' expresii ('.max(0,$GOAL-$done).' rămase)</p>
+    <div class="progress">
+      <div class="progress-bar" role="progressbar" aria-valuenow="'.$percent.'" aria-valuemin="0" aria-valuemax="100" style="width:'.$percent.'%">'.$percent.'%</div>
+    </div>
+    <div class="panel panel-primary">
+    <div class="panel-heading"><strong>Instrucțiuni</strong></div>
+      <div class="panel-body">
+        <p>Veți citi o expresie românească. Apoi, veți oferi 2-3 sinonime pentru aceasta și veți evalua cât contribuie individual fiecare cuvânt al acesteia la sensul global al expresiei, pe o scară de la 0 la 5.</p>
+        <ul>
+        <li>Completarea fiecare expresii ar trebui să dureze între 1 și 2 minute, nu mai mult.</li>
+        <li>Dacă nu înțelegeți expresia sau propozițiile în care aceasta apare, treceți peste expresia respectivă.</li>
+        <li>Dacă expresia este ambiguă pentru dumneavoastră, luați în considerare DOAR sensul care apare în cele 3 propoziții listate.</li>
+        <li>Puteți adnota o expresie o singură dată, deci nu vă veți putea întoarce asupra ei.</li>
+        <li>Nu stați prea mult pe gânduri la fiecare întrebare, există mai multe răspunsuri posibile.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <form action="pagina.php" method="POST" onsubmit="return checkValid()">
+    <INPUT TYPE="hidden" name="idMWE" VALUE="'. $idMWE . '">
+    <INPUT TYPE="hidden" name="idSent" VALUE="'. $idMWE . '">
+    <!-- script references -->
+      <script src="js/jquery-2.1.1.min.js"></script>
+      <script src="js/bootstrap.min.js"></script>
+      <script src="js/suggestion_processing.js"></script>
+      <div class="container-full">
+        <div class="col-md-8">
+
+          <fieldset>
+            <label>1. Citiți următoarea expresie:</label>
+            <br/>
+            <span class="indentation"></span><span style="font-size: 20pt"><em>' . $mweinfo['compound'] . '</em></span>
+          </fieldset>
+
+          <br/><!--=====================================================-->
+
+          <fieldset>
+            <label>2. Citiți propozițiile următoare care conțin expresia<em>' . $mweinfo['compound'] . '</em>:</label>
+            <br/>
+            <ul>
+              <li>' . $mweinfo["examplesent1"] . '</li>
+              <li>' . $mweinfo["examplesent2"] . '</li>
+              <li>' . $mweinfo["examplesent3"] . '</li>
+            </ul>
+            <hr/>
+            <em> Nu am înțeles sensul expresiei din aceste propoziții &#8594; </em>
+            <button onclick="setValidoParaPular()" class="btn btn-default" type="submit" name="btt_pular" value="skipPage" id="bttPular"> Săriți peste această expresie </button>
+          </fieldset>
+
+          <br/><!--=====================================================-->
+
+          <fieldset>
+          <label>3. Tastați de la 2 până la 3 sinonime, mai exact, cuvinte sau expresii echivalente cu<em>' . $mweinfo['compound'] . '</em>:</label>
+            <br/>
+            <br/>
+            <div class="input-group" style="width:400px;text-align:center;margin:0 auto;">
+            <input id="inputWord" class="form-control input-lg" title="Preferință pentru răspunsuri scurte (1-3 cuvinte), folosiți, în limita posibilității, cuvintele &quot;' . $mweinfo['head'] . '&quot; și/sau &quot;' . $mweinfo['modifier'] . '&quot;. Nu introduceți propoziții complete sau definiții din dicționar." placeholder="Sinonime pentru '. $mweinfo['compound'] . '..." type="text">
+                <span class="input-group-btn"><button id="submitWord" onclick="addSuggestion()" class="btn btn-lg btn-primary" type="button">enter</button></span>
+            </div>
+            <br/>
+            <select id="candidateList" class="form-control" multiple="multiple" style="width:400px;margin:0 auto;" name="values[ ]"></select>
+            <br/>
+            <center>
+            <button onclick="removeSelected()" class="btn btn-default" style="width:200px;" type="button">Ștergeți</button>
+            <button onclick="clearAll()" class="btn btn-default" style="width:200px;" type="button">Ștergeți tot</button>
+            </center>
+          </fieldset>
+
+          <br/><!--=====================================================-->
+
+          <fieldset>
+            <label>4. În opinia dumneavoastră,' . $mweinfo['be'] . "" . $mweinfo['undefdet_compound'] . '<em>' . $mweinfo['compound'] . '</em> literalmente mereu' . $mweinfo['undefdet_head'] . '<em>' . $mweinfo['head'] . '</em>? </label>
+            <br/>
+            <br/>
+            <table class="radio-table">
+              <tbody>
+                <tr><td class="bigno" rowspan="2">NU</td> <td class="number">0</td> <td class="number">1</td> <td class="number">2</td> <td class="number">3</td> <td class="number">4</td> <td class="number">5</td> <td class="bigyes" rowspan="2">DA</td></tr>
+                <tr>
+                  <td class="tooltippy"><input id="questio11" name="Qhead" required="" type="radio" value="0" />
+                        <div class="ttip">În niciun caz, &mdash;' . $mweinfo['undefdet_compound'] . '<em>' . $mweinfo['compound'] . '</em> nu' . $mweinfo['have'] . ' <u>nimic de-a face</u> cu' . $mweinfo['undefdet_head'] . '<em>' . $mweinfo['head'] . '</em></div>
+                        </td>
+                        <td class="tooltippy"><input id="questio12" name="Qhead" required="" type="radio" value="1" />
+                        <div class="ttip">Nu &mdash; văd doar o <u>legătură vagă</u> între' . $mweinfo['undefdet_compound'] . '<em>' . $mweinfo['compound'] . '</em> și' . $mweinfo['undefdet_head'] . '<em>' . $mweinfo['head'] . '</em></div>
+                        </td>
+                        <td class="tooltippy"><input id="questio13" name="Qhead" required="" type="radio" value="2" />
+                        <div class="ttip">Nu chiar &mdash; înțelesul expresiei<em>' . $mweinfo['compound'] . '</em> este <u>asociat</u> cu<em>' . $mweinfo['undefdet_head'] . $mweinfo['head'] . '</em>, dar doar <u>indirect</u></div>
+                        </td>
+                        <td class="tooltippy"><input id="questio14" name="Qhead" required="" type="radio" value="3" />
+                        <div class="ttip">Într-o anumită măsură da, &mdash; înțelesul expresiei<em>' . $mweinfo['compound'] . '</em> este <u>direct asociat</u> cu<em>' . $mweinfo['undefdet_head'] . $mweinfo['head'] . '</em>, chiar dacă înțelesurile lor nu sunt identice</div>
+                        </td>
+                        <td class="tooltippy"><input id="questio15" name="Qhead" required="" type="radio" value="4" />
+                        <div class="ttip">Da &mdash;' . $mweinfo['undefdet_compound'] . '<em>' . $mweinfo['compound'] . '</em><u>' . $mweinfo['be'] . ' chiar</u>' . $mweinfo['undefdet_head'] . '<em>' . $mweinfo['head'] . '</em>, pentru un înțeles mai puțin folosit al cuvântului<em>' . $mweinfo['head'] . '</em></div>
+                        </td>
+                        <td class="tooltippy"><input id="questio16" name="Qhead" required="" type="radio" value="5" />
+                        <div class="ttip">Da! &mdash;' . $mweinfo['undefdet_compound'] . '<em>' . $mweinfo['compound'] . '</em>' . $mweinfo['be'] . ' <u>mereu literalmente</u>' . $mweinfo['undefdet_head'] . '<em>' . $mweinfo['head'] . '</em></div>
+                        </td>
+                </tr>
+              </tbody>
+            </table>
+          </fieldset>
+
+          <br/><!--=====================================================-->
+
+          <fieldset>
+          <label>5. În opinia dumneavoastră, sensul expresiei'. $mweinfo['undefdet_compound'].'<em>'.$mweinfo['compound'].'</em> are mereu literalemente legătură cu'.$mweinfo['something_modifier']. $mweinfo['modifier_2_N_idf'] .'<em>'. $mweinfo['modifier_2'].'</em>? </label>
+            <br/>
+            <br/>
+            <table class="radio-table">
+              <tbody>
+              <tr><td class="bigno" rowspan="2">Nu</td> <td class="number">0</td> <td class="number">1</td> <td class="number">2</td> <td class="number">3</td> <td class="number">4</td> <td class="number">5</td> <td class="bigyes" rowspan="2">DA</td></tr>
+                <tr>
+                  	<td class="tooltippy"><input id="questio21" name="Qmodifier" required="" type="radio" value="0" />
+                    <div class="ttip">În niciun caz &mdash;' . $mweinfo['undefdet_compound'] . '<em>' . $mweinfo['compound'] . '</em> nu' . $mweinfo['have'] . ' <u>nimic</u> de-a face cu' . $mweinfo['something_modifier'] . $mweinfo['modifier_2_N_idf'] .'<em>' . $mweinfo['modifier_2'] . '</em></div>
+                    </td>
+                    <td class="tooltippy"><input id="questio22" name="Qmodifier" required="" type="radio" value="1" />
+                    <div class="ttip">Nu &mdash; văd doar o <u>relație vagă</u> între' . $mweinfo['undefdet_compound'] . '<em>' . $mweinfo['compound'] . '</em> și' . $mweinfo['something_modifier'] . $mweinfo['modifier_2_N_idf'] .'<em>' . $mweinfo['modifier_2'] . '</em></div>
+                    </td>
+                    <td class="tooltippy"><input id="questio23" name="Qmodifier" required="" type="radio" value="2" />
+                    <div class="ttip">Nu prea &mdash; sensul expresiei<em>' . $mweinfo['compound'] . '</em> este <u>asociat</u> cu' . $mweinfo['something_modifier'] . $mweinfo['modifier_2_N_idf'] .'<em>' . $mweinfo['modifier_2'] . '</em>, dar doar <u>indirect</u></div>
+                    </td>
+                    <td class="tooltippy"><input id="questio24" name="Qmodifier" required="" type="radio" value="3" />
+                    <div class="ttip">Oarecum &mdash; sensul expresiei<em>' . $mweinfo['compound'] . '</em> este <u>direct asociat</u> cu' . $mweinfo['something_modifier'] . $mweinfo['modifier_2_N_idf'] .'<em>' . $mweinfo['modifier_2'] . '</em>, chiar dacă înțelesurile lor nu sunt identice</div>
+                    </td>
+                    <td class="tooltippy"><input id="questio25" name="Qmodifier" required="" type="radio" value="4" />
+                    <div class="ttip">Da &mdash; expresia<em>' . $mweinfo['compound'] . '</em> înseamnă <u>chiar</u>' . $mweinfo['relatedto_modifier'] . $mweinfo['possessive_article'] . '<em>' . $mweinfo['modifier'] . '</em>, pentru un înțeles mai puțin folosit al cuvântului<em>' . $mweinfo['modifier_3'] . '</em></div>
+                    </td>
+                    <td class="tooltippy"><input id="questio26" name="Qmodifier" required="" type="radio" value="5" />
+                    <div class="ttip">Da! &mdash; expresia<em>' . $mweinfo['compound'] . '</em> înseamnă <u>mereu literalmente</u>' . $mweinfo['relatedto_modifier'] . $mweinfo['possessive_article'] . '<em>' . $mweinfo['modifier_3'] . '</em></div>
+                    </td>
+                </tr>
+              </tbody>
+            </table>
+          </fieldset>
+
+          <br/><!--=====================================================-->
+          <fieldset>
+          <label>6. Având în vedere răspunsurile dumneavoastră anterioare, ați spune că' . $mweinfo['undefdet_compound'] . '<em>' . $mweinfo['compound'] . '</em>' . $mweinfo['be'] . ' literalmente mereu' . $mweinfo['undefdet_head'] . '<em>' . $mweinfo['head'] . '</em> care' . $mweinfo['be'] . '' . $mweinfo['relatedto_modifier'] . $mweinfo['possessive_article'] . '<em>' . $mweinfo['modifier'] . '</em>? </label>
+            <br/>
+            <br/>
+            <table class="radio-table">
+              <tbody>
+              <tr><td class="bigno" rowspan="2">NU</td> <td class="number">0</td> <td class="number">1</td> <td class="number">2</td> <td class="number">3</td> <td class="number">4</td> <td class="number">5</td> <td class="bigyes" rowspan="2">DA</td></tr>
+                <tr>
+                  <td class="tooltippy"><input id="questio31" name="Qheadmodifier" required="" type="radio" value="0" />
+                  <div class="ttip">În niciun caz &mdash; nu <u>are sens</u> să-ți imaginezi' . $mweinfo['undefdet_head'] . '<em>' . $mweinfo['head'] . '</em> care' . $mweinfo['be'] . '' . $mweinfo['relatedto_modifier'] . $mweinfo['possessive_article'] . '<em>' . $mweinfo['modifier'] . '</em></div>
+                  </td>
+                  <td class="tooltippy"><input id="questio32" name="Qheadmodifier" required="" type="radio" value="1" />
+                  <div class="ttip">Nu &mdash; e <u>ciudat</u> să-ți imaginezi' . $mweinfo['undefdet_head'] . '<em>' . $mweinfo['head'] . '</em> care' . $mweinfo['be'] . '' . $mweinfo['relatedto_modifier'] . $mweinfo['possessive_article'] . '<em>' . $mweinfo['modifier'] . '</em>, chiar dacă sensul său poate fi înțeles</div>
+                  </td>
+                  <td class="tooltippy"><input id="questio33" name="Qheadmodifier" required="" type="radio" value="2" />
+                  <div class="ttip">Nu prea &mdash; sensul expresiei<em>' . $mweinfo['compound'] . '</em> este <u>asociat</u> cu' . $mweinfo['undefdet_head'] . '<em>' . $mweinfo['head'] . '</em> și cu' . $mweinfo['something_modifier'] . $mweinfo['modifier_2_N_idf'] . '<em>' . $mweinfo['modifier_2'] . '</em>, dar doar într-o manieră indirectă</div>
+                  </td>
+                  <td class="tooltippy"><input id="questio34" name="Qheadmodifier" required="" type="radio" value="3" />
+                  <div class="ttip">Oarecum &mdash; sensul expresiei<em>' . $mweinfo['compound'] . '</em> este <u>direct  asociat</u> cu' . $mweinfo['undefdet_head'] . '<em>' . $mweinfo['head'] . '</em> și cu' . $mweinfo['something_modifier'] . $mweinfo['modifier_2_N_idf'] . '<em>' . $mweinfo['modifier_2'] . '</em>, chiar dacă înțelesurile lor nu sunt identice</div>
+                  </td>
+                  <td class="tooltippy"><input id="questio35" name="Qheadmodifier" required="" type="radio" value="4" />
+                  <div class="ttip">Da &mdash;' . $mweinfo['undefdet_compound'] . '<em>' . $mweinfo['compound'] . '</em><u>' . $mweinfo['be'] . ' de fapt</u>' . $mweinfo['undefdet_head'] . '<em>' . $mweinfo['head'] . '</em> care' . $mweinfo['be'] . '' . $mweinfo['relatedto_modifier'] . $mweinfo['possessive_article'] . '<em>' . $mweinfo['modifier'] . '</em></div>
+                  </td>
+                  <td class="tooltippy"><input id="questio36" name="Qheadmodifier" required="" type="radio" value="5" />
+                  <div class="ttip">Da! &mdash;' . $mweinfo['undefdet_compound'] . '<em>' . $mweinfo['compound'] . '</em>' . $mweinfo['be'] . ' <u>literalmente mereu</u>' . $mweinfo['undefdet_head'] . '<em>' . $mweinfo['head'] . '</em> care' . $mweinfo['be'] . '' . $mweinfo['relatedto_modifier'] . $mweinfo['possessive_article'] . '<em>' . $mweinfo['modifier'] . '</em></div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </fieldset>
+
+          <br/><!--=====================================================-->
+
+          <fieldset>
+            <label>Aici puteți tasta comentarii dacă aveți eventuale observații (opțional): </label><br/>
+            <textarea cols="40" rows="5" name="comments"></textarea>
+          </fieldset>
+
+          <br/><!--=====================================================-->
+
+          <button class="btn btn-default" style="width:100px;float: right; margin-bottom:20px;" type="submit" name="btt_next" value="nextPage" id="bttNext">Următoarea expresie</button>
+        </div>
+      </div>
+    </form>
+  </body>
+</html>');
+}
+?>

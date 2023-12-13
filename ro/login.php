@@ -1,0 +1,182 @@
+<?php
+require_once 'db.php';
+?>
+
+<html lang="en">
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf8">
+		<title>Interpretarea compușilor nominali în limba română</title>
+		<meta name="generator" content="Bootply" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+		<link href="css/bootstrap.min.css" rel="stylesheet">
+		<link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.min.css" rel="stylesheet">
+		<!--[if lt IE 9]>
+			<script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
+		<![endif]-->
+		<link href="css/styles.css" rel="stylesheet">
+	</head>
+	<body>
+
+<div class="container">
+      <div class="row">
+        <div class="col-lg-12 text-center v-center">
+        <h1>Interpretarea compușilor nominali în limba română</h1>
+          <br/>
+          	<?php
+            if( isset($anno)){
+                echo '<h3 style="color:red">Autentificarea sub numele de '.$anno.' nu a putut fi găsită.</h2>';
+            }
+            if( isset($_POST['create_id'])) {
+                if( strtolower($_POST['passphrase'])=="branzamareimaginemare"){ // HARDCODED PASSPHRASE!
+                    $uname = $_POST['name'];
+                    //$surname = $_POST['surname'];
+                    //$age = $_POST['age'];
+                    //$country = $_POST['country'];
+                    $new = true;
+                    $tries = 0;
+										$tbl = $prefix."users";
+                    while( $new and $tries <= 10 ) {
+                      // Personal data removed - necessary items to be captured elsewhere
+                      //$prefixid = strtolower(str_replace(' ', '-', $surname . $firstname . "user" )); // Replaces all spaces with hyphens.
+                      $prefixid = strtolower(str_replace(' ', '-', $uname . "user" )); // Replaces all spaces with hyphens.
+                      // Amended to handle non-Latin word characters
+                      //$prefixid = preg_replace('/[^a-z0-9\-]/', '', $prefixid); // Remove special chars
+                      $prefixid = preg_replace('/[^\p{L}0-9\-]/u', '', $prefixid); // Remove special chars
+                      $annotid =  mb_substr($prefixid , 0, 8, "utf-8").rand(100000 , 999999);
+											$stmt = $pdo->prepare("SELECT anotador FROM $tbl WHERE anotador = :anno");
+                      $result = $stmt->execute(array(':anno' => $annotid));
+											if ($result){
+												$new = false;
+											}
+                      $tries++;
+                    }
+                    if( $tries >= 10 ){
+                      echo '<h3><span style="color:red">Nu am putut crea o autentificare aleatorie pentru dumneavoastră. Sunteți sigur că nu aveți deja un cont?</span></h3>';
+                      unset($annotid);
+                    }
+                    else {
+                      echo '<h3>Datele autentificării dumneavoastră sunt <span style="color:red">'.$annotid.'</span> - Vă rugăm să le salvați acum pentru că nu le veți primi mai târziu într-un email de confirmare.</h2>';
+											$stmt = $pdo->prepare("INSERT INTO $tbl (anotador, name) VALUES (:anno, :uname)");
+											$result = $stmt->execute(array(':anno' => $annotid, ':uname' => $uname));
+                    }
+                }
+                else{
+                    echo '<h3 style="color:red">Codul de acces este greșit. <br/>Vă rugăm să verificați codul de acces din email-ul de invitație.</h2>';
+                }
+            }
+
+	        ?>
+
+          <br/>
+          <h4>Deja am datele de autentificare</h4>
+          <form class="col-lg-12" method="POST">
+            <div class="input-group" style="width:340px;text-align:center;margin:0 auto;">
+            <input class="form-control input-lg" title="Datele dumneavoastră nu vor fi partajate cu terțe părți." placeholder="Datele dumneavoastră de autentificare" type="text" name="annotator" <?php echo (isset($annotid)?'value="'.$annotid.'"':''); ?> >
+              <span class="input-group-btn">
+		<button class="btn btn-lg btn-primary" type="submit" name="ok" value="ok">Conectare</button></span>
+            </div>
+          </form>
+        </div>
+
+      </div> <!-- /row -->
+
+</div>
+
+<div class="container">
+	<br/>
+	<br/>
+	<center><h4>Nu am datele de autentificare încă:</h4></center>
+
+<h2>1. Citiți următoarele instrucțiuni</h2>
+
+<ul>
+ <li>Veți citi expresii în limba română și veți evalua dacă și în ce măsură sensul individual al fiecărui cuvânt din aceste expresii contribuie la înțelesul expresiei ca un întreg. </li>
+  <li>Suntem interesați de modul în care aceste expresii sunt interpretate de vorbitorii de limba română în vorbirea obișnuită de zi cu zi. Pentru fiecare expresie, vi se va cere să citiți 3 propoziții în care aceasta apare. Dacă nu înțelegeți expresia, treceți pur și simplu peste ea. </li>
+  <li>Dacă expresia are mai multe înțelesuri, luați în considerare <em>DOAR</em> înțelesurile din propozițiile folosite ca exemplu. </li>
+  <li>Unele propoziții pot conține greșeli de scriere, fiind preluate de pe internet. În acest caz, ignorați pur și simplu greșelile. </li>
+  <li>Veți răspunde la 2 întrebări despre sensul cuvintelor individuale din fiecare expresie. Pentru fiecare întrebare, faceți pur și simplu click pe cât de mult considerați că termenii individuali contribuie la înțelesul expresiei ca întreg, pe o scară de la 0 (Nu, nu contribuie deloc) la 5 (Da, contribuie în totalitate). Valorile intermediare pot fi utilizate pentru contribuții parțiale. </li>
+  <li>În final, vi se va cere să introduceți 3 sinonime alternative pentru fiecare expresie, ce ar putea fi folosite în locul expresiei cu același înțeles. </li>
+  <li>Nu vă gândiți prea mult la fiecare expresie, nu există răspunsuri corecte sau greșite. Acesta nu este un test de memorie sau de inteligență. Ne dorim doar să înțelegem mai bine expresiile din limba română și modul în care sunt interpretate de vorbitori.</li>
+  <li>Dacă aveți probleme, comentarii sau sugestii, nu ezitați să le scrieți în partea de jos a paginii. </li>
+</ul>
+
+<!----------------------------------------------------------------------------->
+<hl/>
+
+<h2>2. Citiți exemplele</h2>
+
+  <h2>ODIHNĂ ETERNĂ</h2>
+
+<strong>Propoziția : </strong> <em>Dumnezeu să -i dea <u>odihnă eternă</u> .</em>
+<br/>
+<strong>Întrebarea :</strong>Acum introduceți trei sinonime pentru <em>odihnă eternă</em>
+<br/>
+<strong>Răspunsul așteptat : </strong>
+<ul>
+  <li><em>pace</em></li>
+  <li><em>moarte ușoară</em></li>
+  <li><em>liniște</em></li>
+</ul>
+<br/>
+<strong>Explicația</strong> : odihna eternă se referă la pacea de după moarte sau liniște. Alterantivele au un sens similar
+
+  <h2>RĂMAS-BUN</h2>
+<strong>Propoziția :</strong> <em>Luați -vă <u>rămas-bun</u> de la tata!</em>
+<br/>
+<strong>Întrebarea :</strong> Este un <em>rămas-bun</em> literlamente <em>bun</em> ?
+<br/>
+<strong>Răspunsul așteptat : </strong> <img src="img/answer-0.png"> <!-- 0 -->
+<br/>
+<strong>Explicația</strong> : Un rămas-bun se referă la un salut de la revedere. Nu are legătură cu cuvintele individuale, din moment ce nu înseamnă nici rămas, dar nici bun.
+
+<!----------------------------------------------------------------------------->
+
+  <h2>MARE LUCRU</h2>
+
+<strong>Propoziția : </strong> <em>Nu aducea <u>mare lucru</u> : câteva fructe, ceva dulciuri.</em>
+<br/>
+<strong>Întrebarea :</strong>  Este <em>mare lucru</em> literalmente un <em>lucru</em>  ?
+<br/>
+<strong>Raspunsul așteptat : </strong> <img src="img/answer-1.png"> <!-- 1 -->
+<br/>
+<strong>Explicația</strong> : este folosit pentru a exprima o canitate neimportantă sau ceva neimportant, de mică valoare. Nu este literalmente un lucru.
+
+<!----------------------------------------------------------------------------->
+
+  <h2>SCHIMBARE CLIMATICĂ</h2>
+
+<strong>Propoziția : </strong> <em>Așa că da, <u>schimbarea climatică</u> este o amenințare uriașă pentru toate ființele vii și pentru fiecare biom. </em>
+<br/>
+<strong>Întrebarea :</strong> Este <em>schimbarea climatică</em> literalmente o <em>schimbare</em> <em>climatică</em> ?
+<br/>
+<strong>Raspunsul așteptat : </strong> <img src="img/answer-5.png"> <!-- 5 -->
+<br/>
+<strong>Explicația </strong> : schimbarea climatică se referă la felul în care clima lumii se schimbă.
+
+
+<!----------------------------------------------------------------------------->
+<hl/>
+          <h2>3. Completați formularul de înregistrare</h2>
+          <strong>Note</strong>: Din motive de securitate, evitați să reutilizați nume de utilizator deja folosite.
+      <div class="row">
+        <div class="col-lg-12 text-center v-center">
+          <form class="col-lg-12" method="POST">
+            <div class="input-group" style="width:380px;text-align:center;margin:0 auto;">
+            <!-- <input required class="form-control input-lg" title="Spuneți-ne prenumele dumneavoastră" placeholder="Prenume (de exemplu, Andreea)" type="text" name="name"/>-->
+            <!-- <input required class="form-control input-lg" title="Spuneți-ne numele dumneavoastră de familie" placeholder="Nume de familie (de exemplu, Popescu)" type="text" name="surname"/>-->
+            <!-- <input required class="form-control input-lg" title="Spuneți-ne vârsta dumneavoastră" placeholder="Vârstă (de exemplu, 25)" type="text" name="age">-->
+            <!-- <input required class="form-control input-lg" title="În ce țară locuiți?" placeholder="Țara în care locuiți (de exemplu, România, Marea Britanie…)" type="text" name="country">-->
+            <input required class="form-control input-lg" title="Nume de utilizator dorit" placeholder="Nume de utilizator" type="text" name="name"/>
+            <input required class="form-control input-lg" title="Cod de acces" placeholder="Cod secret de acces primit prin email" type="text" name="passphrase">
+            <!-- <p><input required class="" title="Dacă nu îndepliniți acest criteriu, vă rugăm să nu participați la acest experiment" type="checkbox" name="native"/> Declar că sunt vorbitor de limba română.</p>-->
+		        <button class="btn btn-lg btn-primary" type="submit" name="create_id" value="create_id">Creează-mi datele de autentificare</button>
+            </div>
+          </form>
+        </div>
+
+      </div> <!-- /row -->
+
+</div>
+
+	</body>
+</html>
