@@ -23,7 +23,7 @@ echo '<!DOCTYPE html>
 
     <table class="table table-hover table-bordered">
       <tr><th>annotator</th><th>ID</th><th>compound</th><th>answer-head</th><th>answer-modifier</th><th>answer-headModifier</th><th>equivalents</th></tr>';
-  $stmt = $pdo->prepare("SELECT id, compound, anotador, AVG(resp1), AVG(resp2), AVG(resp3), GROUP_CONCAT(word SEPARATOR ' - ') AS equivalents FROM (SELECT id, compound, anotador, resp1, resp2, resp3 FROM mturk_en_mwes AS m LEFT JOIN mturk_en_respostas AS r ON m.id = r.idMWE WHERE resp1 != -1) AS rm LEFT JOIN mturk_en_anotacao AS a ON rm.id = a.idMWE AND rm.anotador = a.idanno GROUP BY anotador, id ORDER BY anotador, id");
+  $stmt = $pdo->prepare("SELECT id, compound, anotador, AVG(resp1), AVG(resp2), AVG(resp3), AVG(literality), GROUP_CONCAT(word SEPARATOR ' - ') AS equivalents FROM (SELECT id, compound, anotador, resp1, resp2, resp3 FROM mturk_en_mwes AS m LEFT JOIN mturk_en_respostas AS r ON m.id = r.idMWE WHERE resp1 != -1) AS rm LEFT JOIN mturk_en_anotacao AS a ON rm.id = a.idMWE AND rm.anotador = a.idanno GROUP BY anotador, id ORDER BY anotador, id");
   $stmt->execute();
   $result = $stmt->fetchAll(PDO::FETCH_BOTH);
   if($result){

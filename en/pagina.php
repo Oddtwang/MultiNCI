@@ -5,8 +5,8 @@ if(!isset($_COOKIE["annotator"])){
     header("location:index.php");
 }
 $prefix = "nctti_en_";
-$MAXANNOT = "280";
-$GOAL=280;
+$MAXANNOT = "307";
+$GOAL=307;
 
 $tbl_mwes = $prefix."mwes";
 $tbl_respostas = $prefix."responses";
@@ -40,7 +40,7 @@ function get_random_mwe_id($anno, $pdo){
 
 /******************************************************************************/
 
-function store_previous_answer($ans1, $ans2, $ans3, $comments, $equivalents, $anno, $pdo){
+function store_previous_answer($ans1, $ans2, $ans3, $lit, $comments, $equivalents, $anno, $pdo){
     $idMWE = $_POST['idMWE'];
     $idSent= $_POST['idSent'];
     global $prefix;
@@ -50,9 +50,8 @@ function store_previous_answer($ans1, $ans2, $ans3, $comments, $equivalents, $an
     $check->execute(array(':idMWE' => $idMWE, ':anno' => $anno));
     $test = $check->fetch(PDO::FETCH_NUM);
     if ( ! $test){
-      $stmt = $pdo->prepare("INSERT INTO $tbl_respostas (idMWE, idSent, anotador, resp1, resp2, resp3, comments) VALUES (:idMWE, :idSent, :anotador, :ans1, :ans2, :ans3, :comments)");
-      $stmt->execute(array(':idMWE'  => $idMWE, ':idSent' => $idSent, ':anotador' => $anno, ':ans1' => $ans1, ':ans2' => $ans2, ':ans3'=> $ans3, ':comments' => $comments));
-      for($i=0; $i < count($equivalents); $i++){
+      $stmt = $pdo->prepare("INSERT INTO $tbl_respostas (idMWE, idSent, anotador, resp1, resp2, resp3, literality, comments) VALUES (:idMWE, :idSent, :anotador, :ans1, :ans2, :ans3, :lit, :comments)");
+      $stmt->execute(array(':idMWE'  => $idMWE, ':idSent' => $idSent, ':anotador' => $anno, ':ans1' => $ans1, ':ans2' => $ans2, ':ans3'=> $ans3, ':lit'=> $lit, ':comments' => $comments));      for($i=0; $i < count($equivalents); $i++){
         $stmt = $pdo->prepare("INSERT INTO $tbl_anotacao (idmwe, idsent, idanno, word) VALUES (:idMWE, :idSent, :idAnno, :word)");
         $stmt->execute(array(':idMWE' => $idMWE, ':idSent' => $idSent, ':idAnno' =>$anno, ':word' => $equivalents[$i]));
       }
@@ -66,7 +65,7 @@ function store_previous_answer($ans1, $ans2, $ans3, $comments, $equivalents, $an
 $anno = $_COOKIE["annotator"];
 // User skipped previous question, store this decision
 if(isset($_POST['btt_pular'])){
-    store_previous_answer(-1,-1,-1,"pulou",array(),$anno, $pdo);
+    store_previous_answer(-1,-1,-1,-1,"pulou",array(),$anno, $pdo);
 }
 // User submitted last question, store the answers
 if(isset($_POST['btt_next'])){
@@ -74,8 +73,9 @@ if(isset($_POST['btt_next'])){
     $ans1 = $_POST['Qhead'];
     $ans2 = $_POST['Qmodifier'];
     $ans3 = $_POST['Qheadmodifier'];
+    $lit = $_POST['Qliterality'];
     $comments = $_POST['comments'];
-    store_previous_answer($ans1, $ans2, $ans3, $comments, $equivalents,$anno, $pdo);
+    store_previous_answer($ans1, $ans2, $ans3, $lit, $comments, $equivalents,$anno, $pdo);
 }
 // Generate next question
 $idMWE = get_random_mwe_id($anno, $pdo);

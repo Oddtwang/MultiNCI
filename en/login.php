@@ -95,6 +95,7 @@ require_once 'db.php';
   <li>If the expression has more than one meaning, consider <em>ONLY</em> those in the example sentences.</li>
   <li>Some sentences may contain typos, since they are from the Internet. If that is the case just ignore the typos. </li>
   <li>You will answer 2 questions about the meaning of the individual words of the expression. For each question, simply click on how much you think the individual words contribute to the meaning of the expression on a scale from 0 (<em>No, it doesn't contribute at all</em>) to 5 (<em>Yes, it totally contributes</em>). The intermediate values can be used for nuance. </li>
+  <li>You'll also be asked to think about a <em>literal</em> meaning of the expression, and rate how <i>plausible</i> you find it that the expression would be used <em>literally</em>. Again, this is on a scale from 0 (completely implausible) to 5 (highly plausible).</li>
   <li>Finally you will be asked to input 3 alternative synonyms for the expression that could be used instead of the expression and have the same meaning. </li>
   <li>Don't think about each expression too much, as there are no right or wrong answers. This is not a memory or intelligence test. We really only want to better understand expressions in English and how they are interpreted by speakers.</li>
   <li>If you have any problems, comments or suggestions, don't hesitate to note them at the bottom of the page.</li>
@@ -153,6 +154,17 @@ require_once 'db.php';
 <br/>
 <strong>Explanation</strong> : climate change refers to the way the world's weather is changing.
 
+<!----------------------------------------------------------------------------->
+
+<h2>SNAKE OIL</h2>
+
+<strong>Sentence : </strong> <em>They see the disease, but the cures they offer are <u>snake oil</u>. </em>
+<br/>
+<strong>Question :</strong> How plausible is a <em>literal</em> interpretation of <em>snake oil</em>?
+<br/>
+<strong>Expected Answer : </strong> <img src="img/answer-2.png"> <!-- 2 -->
+<br/>
+<strong>Explanation</strong> : While it is possible to imagine getting oil from a snake or making it using snakes, this would be a very unusual thing to imagine happening.
 
 <!----------------------------------------------------------------------------->
 <hl/>
