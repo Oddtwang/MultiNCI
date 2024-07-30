@@ -1,5 +1,5 @@
 /*
- * Isso vai ser sempre depois que a página carregar, é uma "main" só que não
+ * Isso vai ser sempre depois que a pï¿½gina carregar, ï¿½ uma "main" sï¿½ que nï¿½o
  */
 $(function() {
 
@@ -18,7 +18,7 @@ $(function() {
         }
     });
 
-    //Quando pressionado "D" no campo da selects, deleta a opção selecionada
+    //Quando pressionado "D" no campo da selects, deleta a opï¿½ï¿½o selecionada
     $('#candidateList').keypress(function(event) {
         if (event.keyCode == 100) {
         	removeSelected();
@@ -29,7 +29,7 @@ $(function() {
 
 function addSuggestion() {
 
-    //busca a nova sugestão a ser inserida no text input
+    //busca a nova sugestï¿½o a ser inserida no text input
     var newSuggestion = $('#inputWord').val();
     if(newSuggestion.length != 0) { 
       appendNewOption(newSuggestion); 
@@ -44,7 +44,7 @@ function appendNewOption(textToNewOption) {
     var newOption = document.createElement('option');
 
     //Adiciona o texto na nova option
-    //Observação, sempre insira o VALUE da tua option, é isso que vai ser enviado
+    //Observaï¿½ï¿½o, sempre insira o VALUE da tua option, ï¿½ isso que vai ser enviado
     newOption.text = textToNewOption;
     newOption.value = textToNewOption;
 
@@ -54,12 +54,12 @@ function appendNewOption(textToNewOption) {
 
 function removeSelected() {
 
-	//seleciona uma lista de todas as opções selecionadas
+	//seleciona uma lista de todas as opï¿½ï¿½es selecionadas
     $('#candidateList :selected').remove();
 }
 
 function clearAll() {	
-	//seleciona uma lista de todas as opções existente na select
+	//seleciona uma lista de todas as opï¿½ï¿½es existente na select
     $('#candidateList option').remove();
 }
 
@@ -71,7 +71,7 @@ function isValidForm(){
 	  return false; // keep form from submitting
 	}
 	if(equiv[0].textContent.trim() == "" || equiv[1].textContent.trim() == "" ){
-	  alert("Sysnonym suggestions cannot be empty");
+	  alert("Synonym suggestions cannot be empty");
 	  return false; // keep form from submitting
 	}
 	if( equiv[0].textContent.trim() == equiv[1].textContent.trim() ){

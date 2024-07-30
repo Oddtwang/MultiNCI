@@ -1,5 +1,5 @@
 /*
- * Isso vai ser sempre depois que a página carregar, é uma "main" só que não
+ * Isso vai ser sempre depois que a pï¿½gina carregar, ï¿½ uma "main" sï¿½ que nï¿½o
  */
 $(function() {
 
@@ -18,7 +18,7 @@ $(function() {
         }
     });
 
-    //Quando pressionado "D" no campo da selects, deleta a opção selecionada
+    //Quando pressionado "D" no campo da selects, deleta a opï¿½ï¿½o selecionada
     $('#candidateList').keypress(function(event) {
         if (event.keyCode == 100) {
         	removeSelected();
@@ -29,7 +29,7 @@ $(function() {
 
 function addSuggestion() {
 
-    //busca a nova sugestão a ser inserida no text input
+    //busca a nova sugestï¿½o a ser inserida no text input
     var newSuggestion = $('#inputWord').val();
     if(newSuggestion.length != 0) { 
       appendNewOption(newSuggestion); 
@@ -44,7 +44,7 @@ function appendNewOption(textToNewOption) {
     var newOption = document.createElement('option');
 
     //Adiciona o texto na nova option
-    //Observação, sempre insira o VALUE da tua option, é isso que vai ser enviado
+    //Observaï¿½ï¿½o, sempre insira o VALUE da tua option, ï¿½ isso que vai ser enviado
     newOption.text = textToNewOption;
     newOption.value = textToNewOption;
 
@@ -54,12 +54,12 @@ function appendNewOption(textToNewOption) {
 
 function removeSelected() {
 
-	//seleciona uma lista de todas as opções selecionadas
+	//seleciona uma lista de todas as opï¿½ï¿½es selecionadas
     $('#candidateList :selected').remove();
 }
 
 function clearAll() {	
-	//seleciona uma lista de todas as opções existente na select
+	//seleciona uma lista de todas as opï¿½ï¿½es existente na select
     $('#candidateList option').remove();
 }
 
@@ -67,11 +67,11 @@ function isValidForm(){
     var equiv = document.getElementById('candidateList');
 	var nbEquiv = equiv.length;
 	if (nbEquiv < 2) {
-	  alert("No item 3 você deve fornecer pelo menos 2 palavras equivalentes ou similares!");
+	  alert("No item 3 vocÃª deve fornecer pelo menos 2 palavras equivalentes ou similares!");
 	  return false; // keep form from submitting
 	}
 	if(equiv[0].textContent.trim() == "" ){
-	  alert("As sugestões de sinônimos não podem ser vazias");
+	  alert("As sugestÃµes de sinÃ´nimos nÃ£o podem ser vazias");
 	  return false; // keep form from submitting
 	}
 	if( document.getElementById('questio11').checked==false &&
