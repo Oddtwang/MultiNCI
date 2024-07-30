@@ -20,10 +20,10 @@ function get_random_mwe_id($anno, $pdo){
     global $tbl_mwes;
     global $tbl_respostas;
     # Select MWE IDs that : are not annotated by current annotator and do not have MAXANNOT annotations yet
-    $stmt = $pdo->prepare("SELECT nan.id FROM (SELECT m.id, COUNT(m.id) as cid FROM ($tbl_mwes as m LEFT JOIN mturk_pt_respostas AS r ON m.id = r.idMWE) WHERE id NOT IN (SELECT idMWE FROM $tbl_respostas WHERE anotador = :anotador) GROUP BY m.id) AS nan WHERE cid <= :maxannot");
+    $stmt = $pdo->prepare("SELECT nan.id FROM (SELECT m.id, COUNT(m.id) as cid FROM ($tbl_mwes as m LEFT JOIN $tbl_respostas AS r ON m.id = r.idMWE) WHERE id NOT IN (SELECT idMWE FROM $tbl_respostas WHERE anotador = :anotador) GROUP BY m.id) AS nan WHERE cid <= :maxannot");
     $stmt->execute(array(':anotador' => $anno, ':maxannot' => $MAXANNOT));
     $results = $stmt->fetch(PDO::FETCH_NUM);
-    $lstIds = array();
+    $lstIDs = array();
     if($results){
       foreach ($results as $ID) {
         array_push($lstIDs, $ID);
@@ -34,7 +34,7 @@ function get_random_mwe_id($anno, $pdo){
       return $tent;
    }
     else{
-        echo "<h1>Voc� anotou todas as express�es, obrigado! :-)</h1>";
+        echo ("<h1>Voc� anotou todas as express�es, obrigado! :-)</h1>");
     }    
 }
 
@@ -78,7 +78,7 @@ if(isset($_POST['btt_next'])){
     store_previous_answer($ans1, $ans2, $ans3, $comments, $equivalents,$anno);
 }
 // Generate next question
-$idMWE = get_random_mwe_id($anno);
+$idMWE = get_random_mwe_id($anno, $pdo);
 if($idMWE) { // else no new question available, all annotated or problem
   //Retrieve all information about the compound
   $stmt = $pdo->prepare("SELECT * FROM $tbl_mwes WHERE id = :id");

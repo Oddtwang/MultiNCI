@@ -4,7 +4,7 @@ require_once 'db.php';
 
 <html lang="pt">
 	<head>
-		<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+		<meta http-equiv="content-type" content="text/html; charset=utf8">
 		<title>Interpreta��o de substantivos compostos</title>
 		<meta name="generator" content="Bootply" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -17,8 +17,6 @@ require_once 'db.php';
 	</head>
 	<body>
 	
-
-
 <div class="container">
       <div class="row">       
         <div class="col-lg-12 text-center v-center"> 
