@@ -21,6 +21,7 @@
     <h4>Select language:</h4>
     <h4>შეარჩიეთ ენა:</h4>
     <h4>Selecteaza limba:</h4>
+    <h4>Selecione o idioma:</h4>
 
 
     <form action="" method="post">
@@ -29,6 +30,7 @@
             <option value = "en">English</option>
             <option value = "ka">ქართული ენა</option>
             <option value = "ro">limba română</option>
+            <option value = "pt">Português (Brasileiro)</option>
         </select>
         <input type="submit" name="formSubmit" value="OK" />
     </form>
