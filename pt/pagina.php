@@ -97,7 +97,7 @@ if($idMWE) { // else no new question available, all annotated or problem
   '<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="pt">
   <head>
-      <meta http-equiv="content-type" content="text/html; charset=utf-8">
+      <meta http-equiv="content-type" content="text/html; charset=utf8">
       <title>Interpretação de substantivos compostos</title>
       <meta name="generator" content="Bootply" />
       <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -185,12 +185,24 @@ if($idMWE) { // else no new question available, all annotated or problem
               <tbody>
                 <tr><td class="bigno" rowspan="2">NÃO</td> <td class="number">0</td> <td class="number">1</td> <td class="number">2</td> <td class="number">3</td> <td class="number">4</td> <td class="number">5</td> <td class="bigyes" rowspan="2">SIM</td></tr>
                 <tr>
-                  <td class="tooltippy"><input id="questio11"  type="radio" name="Qhead" value="0"/><div class="ttip">De forma nenhuma &mdash; ' . $mweinfo['undefdet_compound'] . ' <em>' . $mweinfo['compound'] . '</em> nào ' . $mweinfo['have'] . ' <u>nada a ver</u> com ' . $mweinfo['undefdet_head'] . ' <em>' . $mweinfo['head'] . '</em></div></td>
-                  <td class="tooltippy"><input id="questio12"  type="radio" name="Qhead" value="1"/><div class="ttip">Não &mdash; eu vejo apenas uma <u>relação vaga</u> entre ' . $mweinfo['undefdet_compound'] . ' <em>' . $mweinfo['compound'] . '</em> e ' . $mweinfo['undefdet_head'] . ' <em>' . $mweinfo['head'] . '</em></div></td>
-                  <td class="tooltippy"><input id="questio13"  type="radio" name="Qhead" value="2"/><div class="ttip">Não exatamente &mdash; o sentido de <em>' . $mweinfo['compound'] . '</em> está <u>associado</u> ao de <em>' . $mweinfo['head'] . '</em>, mas apenas <u>indiretamente</u></div></td>
-                  <td class="tooltippy"><input id="questio14"  type="radio" name="Qhead" value="3"/><div class="ttip">De certa forma &mdash; o sentido de <em>' . $mweinfo['compound'] . '</em> está <u>diretamente associado</u> ao de <em>' . $mweinfo['head'] . '</em>, mesmo que não sejam sentidos idênticos</div></td>
-                  <td class="tooltippy"><input id="questio15"  type="radio" name="Qhead" value="4"/><div class="ttip">Sim &mdash; ' . $mweinfo['undefdet_compound'] . ' <em>' . $mweinfo['compound'] . '</em> <u>' . $mweinfo['be'] . ' mesmo</u> ' . $mweinfo['undefdet_head'] . ' <em>' . $mweinfo['head'] . '</em>, em um sentido pouco comum da palavra <em>' . $mweinfo['head'] . '</em></div></td>
-                  <td class="tooltippy"><input id="questio16"  type="radio" name="Qhead" value="5"/><div class="ttip">Com certeza &mdash; ' . $mweinfo['undefdet_compound'] . ' <em>' . $mweinfo['compound'] . '</em> ' . ' <u>nesta frase é literalmente</u> ' . $mweinfo['undefdet_head'] . ' <em>' . $mweinfo['head'] . '</em></div></td>
+                  <td class="tooltippy"><input id="questio11" required="" type="radio" name="Qhead" value="0"/>
+                    <div class="ttip">De forma nenhuma &mdash; ' . $mweinfo['undefdet_compound'] . ' <em>' . $mweinfo['compound'] . '</em> nào ' . $mweinfo['have'] . ' <u>nada a ver</u> com ' . $mweinfo['undefdet_head'] . ' <em>' . $mweinfo['head'] . '</em></div>
+                  </td>
+                  <td class="tooltippy"><input id="questio12" required="" type="radio" name="Qhead" value="1"/>
+                    <div class="ttip">Não &mdash; eu vejo apenas uma <u>relação vaga</u> entre ' . $mweinfo['undefdet_compound'] . ' <em>' . $mweinfo['compound'] . '</em> e ' . $mweinfo['undefdet_head'] . ' <em>' . $mweinfo['head'] . '</em></div>
+                  </td>
+                  <td class="tooltippy"><input id="questio13" required="" type="radio" name="Qhead" value="2"/>
+                    <div class="ttip">Não exatamente &mdash; o sentido de <em>' . $mweinfo['compound'] . '</em> está <u>associado</u> ao de <em>' . $mweinfo['head'] . '</em>, mas apenas <u>indiretamente</u></div>
+                  </td>
+                  <td class="tooltippy"><input id="questio14" required="" type="radio" name="Qhead" value="3"/>
+                    <div class="ttip">De certa forma &mdash; o sentido de <em>' . $mweinfo['compound'] . '</em> está <u>diretamente associado</u> ao de <em>' . $mweinfo['head'] . '</em>, mesmo que não sejam sentidos idênticos</div>
+                  </td>
+                  <td class="tooltippy"><input id="questio15" required="" type="radio" name="Qhead" value="4"/>
+                    <div class="ttip">Sim &mdash; ' . $mweinfo['undefdet_compound'] . ' <em>' . $mweinfo['compound'] . '</em> <u>' . $mweinfo['be'] . ' mesmo</u> ' . $mweinfo['undefdet_head'] . ' <em>' . $mweinfo['head'] . '</em>, em um sentido pouco comum da palavra <em>' . $mweinfo['head'] . '</em></div>
+                  </td>
+                  <td class="tooltippy"><input id="questio16" required="" type="radio" name="Qhead" value="5"/>
+                    <div class="ttip">Com certeza &mdash; ' . $mweinfo['undefdet_compound'] . ' <em>' . $mweinfo['compound'] . '</em> ' . ' <u>nesta frase é literalmente</u> ' . $mweinfo['undefdet_head'] . ' <em>' . $mweinfo['head'] . '</em></div>
+                  </td>
                 </tr>
               </tbody>
             </table>

@@ -18,10 +18,10 @@
 }
 
 input[type=radio] {
-    appearance: none;
-    -moz-appearance: none;  /* make Firefox respect settings */
-    width   : 20px;
-    height  : 20px;
+    /*appearance: none;*/
+    /*-moz-appearance: none;  /* make Firefox respect settings */
+    width   : 15px;
+    height  : 15px;
     margin  : 5px;
     padding : 0;
 }
