@@ -66,7 +66,7 @@ function store_previous_answer($ans1, $ans2, $ans3, $comments, $equivalents, $an
 $anno = $_COOKIE["annotator"];
 // User skipped previous question, store this decision
 if(isset($_POST['btt_pular'])){ 
-    store_previous_answer(-1,-1,-1,"pulou",array(),$anno);   
+    store_previous_answer(-1,-1,-1,"pulou",array(),$anno, $pdo);   
 }
 // User submitted last question, store the answers
 if(isset($_POST['btt_next'])){ 
@@ -75,7 +75,7 @@ if(isset($_POST['btt_next'])){
     $ans2 = $_POST['Qmodifier'];
     $ans3 = $_POST['Qheadmodifier'];
     $comments = $_POST['comments'];
-    store_previous_answer($ans1, $ans2, $ans3, $comments, $equivalents,$anno);
+    store_previous_answer($ans1, $ans2, $ans3, $comments, $equivalents,$anno, $pdo);
 }
 // Generate next question
 $idMWE = get_random_mwe_id($anno, $pdo);
